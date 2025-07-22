@@ -25,8 +25,8 @@
     </properties>
 
     <modules>
-        <module>igrp-framework-process-manager-integration-core</module>
-        <module>igrp-framework-process-manager-integration-activiti</module>
+        <module>igrp-framework-process-management-integration-core</module>
+        <module>igrp-framework-process-management-integration-activiti</module>
     </modules>
 
     <dependencies>
