@@ -13,8 +13,8 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 
-	<groupId>cv.igrp.framework.process.manager.integration.core</groupId>
-	<artifactId>igrp-framework-process-manager-integration-core</artifactId>
+	<groupId>cv.igrp.framework.process.management.integration.core</groupId>
+	<artifactId>igrp-framework-process-management-integration-core</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
 	<name>iGRP 3.0 Process Manager Core Integration</name>
