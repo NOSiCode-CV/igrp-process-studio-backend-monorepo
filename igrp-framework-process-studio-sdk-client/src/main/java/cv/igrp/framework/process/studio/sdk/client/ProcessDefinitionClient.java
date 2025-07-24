@@ -1,0 +1,123 @@
+package cv.igrp.framework.process.studio.sdk.client;
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cv.igrp.framework.process.management.integration.core.adapter.IProcessDefinitionAdapter;
+import cv.igrp.framework.process.management.integration.core.model.IgrpProcessDefinitionRepresentation;
+import cv.igrp.framework.process.management.integration.core.model.ProcessDefinitionRepresentation;
+import cv.igrp.framework.process.studio.sdk.client.constants.ProcessDefinitionClientConstants;
+import cv.igrp.framework.process.studio.sdk.client.dto.ProcessDefinitionRequest;
+import cv.igrp.framework.process.studio.sdk.client.dto.ProcessDefinitionResponse;
+import cv.igrp.framework.process.studio.sdk.client.exception.ProcessDefinitionClientException;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+
+public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
+
+    private final String baseUrl;
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
+
+    private ProcessDefinitionClient(String baseUrl, HttpClient httpClient, ObjectMapper objectMapper) {
+        this.baseUrl = baseUrl;
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public ProcessDefinitionRepresentation deploy(ProcessDefinitionRepresentation processDefinitionRepresentation)  {
+        try {
+            ProcessDefinitionRequest deployProcessRequest = ProcessDefinitionRequest.builder()
+                    .build();
+            String json = objectMapper.writeValueAsString(deployProcessRequest);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + ProcessDefinitionClientConstants.DEPLOY_ENDPOINT))
+                    .header("Content-Type", ProcessDefinitionClientConstants.CONTENT_TYPE_JSON)
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 400) {
+                throw new ProcessDefinitionClientException("Failed to deploy process: " + response.body());
+            }
+
+            ProcessDefinitionResponse deployProcessResponse = objectMapper.readValue(response.body(), ProcessDefinitionResponse.class);
+
+            return IgrpProcessDefinitionRepresentation.builder()
+                    .id(deployProcessResponse.getId())
+                    .key(deployProcessResponse.getKey())
+                    .name(deployProcessResponse.getName())
+                    .description(deployProcessResponse.getDescription())
+                    .version(String.valueOf(deployProcessResponse.getVersion()))
+                    .bpmnXml(deployProcessResponse.getBpmnXml())
+                    .bpmnSourceType(deployProcessResponse.getBpmnSourceType())
+                    .deployed(deployProcessResponse.isDeployed())
+                    .deploymentId(deployProcessResponse.getDeploymentId())
+                    .deployedAt(deployProcessResponse.getDeployedAt())
+                    .build();
+
+        } catch (Exception e) {
+            throw new ProcessDefinitionClientException("Error while deploying process", e);
+        }
+    }
+
+    @Override
+    public void undeploy(String deploymentId) {
+        String endpoint = String.format(ProcessDefinitionClientConstants.UNDEPLOY_ENDPOINT, deploymentId);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + endpoint))
+                .DELETE()
+                .build();
+        try {
+            HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+            if (response.statusCode() != 204) {
+                throw new ProcessDefinitionClientException("Failed to undeploy process definition. Status code: " + response.statusCode());
+            }
+        } catch (Exception ex) {
+            throw new ProcessDefinitionClientException("Error while undeploying process definition", ex);
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String baseUrl;
+        private HttpClient httpClient;
+        private ObjectMapper objectMapper;
+
+        public Builder baseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
+            return this;
+        }
+
+        public Builder httpClient(HttpClient httpClient) {
+            this.httpClient = httpClient;
+            return this;
+        }
+
+        public Builder objectMapper(ObjectMapper objectMapper) {
+            this.objectMapper = objectMapper;
+            return this;
+        }
+
+        public ProcessDefinitionClient build() {
+            if (baseUrl == null || baseUrl.isBlank()) {
+                throw new IllegalArgumentException("Base URL is required");
+            }
+
+            return new ProcessDefinitionClient(
+                    baseUrl,
+                    httpClient != null ? httpClient : HttpClient.newHttpClient(),
+                    objectMapper != null ? objectMapper : new ObjectMapper()
+            );
+        }
+    }
+
+}
