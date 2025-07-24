@@ -32,6 +32,11 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
     public ProcessDefinitionRepresentation deploy(ProcessDefinitionRepresentation processDefinitionRepresentation)  {
         try {
             ProcessDefinitionRequest deployProcessRequest = ProcessDefinitionRequest.builder()
+                    .key(processDefinitionRepresentation.getKey())
+                    .name(processDefinitionRepresentation.getName())
+                    .description(processDefinitionRepresentation.getDescription())
+                    .resourceName(processDefinitionRepresentation.getResourceName())
+                    .bpmnXml(processDefinitionRepresentation.getBpmnXml())
                     .build();
             String json = objectMapper.writeValueAsString(deployProcessRequest);
             HttpRequest request = HttpRequest.newBuilder()
