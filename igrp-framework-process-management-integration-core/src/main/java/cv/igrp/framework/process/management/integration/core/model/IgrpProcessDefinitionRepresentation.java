@@ -29,6 +29,8 @@ public class IgrpProcessDefinitionRepresentation implements ProcessDefinitionRep
     private List<TaskRepresentation> tasks;
     private List<ProcessVersionRepresentation> versionHistory;
 
+    private String applicationBase;;
+
     @Builder
     public IgrpProcessDefinitionRepresentation(String id,
                                                String key,
@@ -44,7 +46,8 @@ public class IgrpProcessDefinitionRepresentation implements ProcessDefinitionRep
                                                LocalDateTime deployedAt,
                                                List<VariableRepresentation> variables,
                                                List<TaskRepresentation> tasks,
-                                               List<ProcessVersionRepresentation> versionHistory) {
+                                               List<ProcessVersionRepresentation> versionHistory,
+                                               String applicationBase) {
         this.id = id;
         this.key = key;
         this.name = name;
@@ -60,6 +63,7 @@ public class IgrpProcessDefinitionRepresentation implements ProcessDefinitionRep
         this.variables = variables == null ? new ArrayList<>() : variables;
         this.tasks = tasks == null ? new ArrayList<>() : tasks;
         this.versionHistory = versionHistory == null ? new ArrayList<>() : versionHistory;
+        this.applicationBase = applicationBase;
     }
 
 }

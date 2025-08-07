@@ -9,6 +9,8 @@ import cv.igrp.framework.process.studio.sdk.client.constants.ProcessDefinitionCl
 import cv.igrp.framework.process.studio.sdk.client.dto.ProcessDefinitionRequest;
 import cv.igrp.framework.process.studio.sdk.client.dto.ProcessDefinitionResponse;
 import cv.igrp.framework.process.studio.sdk.client.exception.ProcessDefinitionClientException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -22,6 +24,9 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessDefinitionClient.class);
+
+
     private ProcessDefinitionClient(String baseUrl, HttpClient httpClient, ObjectMapper objectMapper) {
         this.baseUrl = baseUrl;
         this.httpClient = httpClient;
@@ -31,9 +36,22 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
     @Override
     public ProcessDefinitionRepresentation deploy(ProcessDefinitionRepresentation processDefinitionRepresentation)  {
         try {
+
+            LOGGER.info("Starting deployment of process definition with key: {}", processDefinitionRepresentation.getKey());
+
             ProcessDefinitionRequest deployProcessRequest = ProcessDefinitionRequest.builder()
+                    .name(processDefinitionRepresentation.getName())
+                    .description(processDefinitionRepresentation.getDescription())
+                    .key(processDefinitionRepresentation.getKey())
+                    .resourceName(processDefinitionRepresentation.getResourceName())
+                    .bpmnXml(processDefinitionRepresentation.getBpmnXml())
+                    .applicationBase(processDefinitionRepresentation.getApplicationBase())
                     .build();
+
             String json = objectMapper.writeValueAsString(deployProcessRequest);
+
+            LOGGER.info("Deploy request payload: {}", objectMapper.writeValueAsString(deployProcessRequest));
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(baseUrl + ProcessDefinitionClientConstants.DEPLOY_ENDPOINT))
                     .header("Content-Type", ProcessDefinitionClientConstants.CONTENT_TYPE_JSON)
@@ -46,7 +64,12 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
                 throw new ProcessDefinitionClientException("Failed to deploy process: " + response.body());
             }
 
+            LOGGER.info("Deploy response payload: {}", response.body());
+
+
             ProcessDefinitionResponse deployProcessResponse = objectMapper.readValue(response.body(), ProcessDefinitionResponse.class);
+
+            LOGGER.info("deployProcessResponse obj ::: {}", deployProcessResponse);
 
             return IgrpProcessDefinitionRepresentation.builder()
                     .id(deployProcessResponse.getId())

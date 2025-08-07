@@ -26,4 +26,6 @@ public class ProcessDefinitionResponse {
     private String deploymentId;
     private LocalDateTime deployedAt;
 
+    private String applicationBase;
+
 }

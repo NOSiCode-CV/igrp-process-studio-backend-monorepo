@@ -24,4 +24,6 @@ public interface ProcessDefinitionRepresentation {
     List<TaskRepresentation> getTasks();
     List<ProcessVersionRepresentation> getVersionHistory();
 
+    String getApplicationBase();
+
 }
