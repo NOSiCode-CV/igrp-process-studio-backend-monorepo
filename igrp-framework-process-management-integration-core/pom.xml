@@ -3,59 +3,30 @@
 		xmlns="http://maven.apache.org/POM/4.0.0"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                        https://maven.apache.org/xsd/maven-4.0.0.xsd">
+                            http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>cv.igrp</groupId>
+		<groupId>cv.igrp.framework</groupId>
 		<artifactId>igrp-process-studio-backend</artifactId>
-		<version>1.0-SNAPSHOT</version>
+		<version>0.1.0-beta.1</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<groupId>cv.igrp.framework.process.management.integration.core</groupId>
 	<artifactId>igrp-framework-process-management-integration-core</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<groupId>cv.igrp.framework.process.management.integration.core</groupId>
+	<version>0.1.0-beta.1</version>
 
 	<name>iGRP 3.0 Process Manager Core Integration</name>
 	<description>iGRP 3.0 Process Manager Core Integration</description>
 
-	<url>https://igrp.cv</url>
-
-	<scm>
-		<url>http://git.nosi.cv/igrp-3_0/identity-access-management-libraries/igrp-platform-iam-core-java</url>
-		<connection>scm:git:git.nosi.cv:igrp-3_0/identity-access-management-libraries/igrp-platform-iam-core-java.git</connection>
-	</scm>
-
-	<licenses>
-		<license>
-			<name>Apache License 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-		</license>
-	</licenses>
-
-	<developers>
-		<developer>
-			<id>nosi</id>
-			<name>NOSi</name>
-			<email>helpdesk@nosi.cv</email>
-			<url>https://nosi.cv</url>
-			<organization>NOSi E.P.E - Núcleo Operacional Para a Sociedade de Informação</organization>
-			<organizationUrl>https://nosi.cv</organizationUrl>
-			<roles>
-				<role>developer</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-	</developers>
-
 	<dependencies>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-autoconfigure</artifactId>
+			<version>3.5.3</version>
 		</dependency>
-
 	</dependencies>
 
 </project>
