@@ -23,14 +23,16 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
     private final String baseUrl;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final String authToken;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessDefinitionClient.class);
 
 
-    private ProcessDefinitionClient(String baseUrl, HttpClient httpClient, ObjectMapper objectMapper) {
+    private ProcessDefinitionClient(String baseUrl, HttpClient httpClient, ObjectMapper objectMapper, String authToken) {
         this.baseUrl = baseUrl;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
+        this.authToken = authToken;
     }
 
     @Override
@@ -52,9 +54,15 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
 
             LOGGER.info("Deploy request payload: {}", objectMapper.writeValueAsString(deployProcessRequest));
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(baseUrl + ProcessDefinitionClientConstants.DEPLOY_ENDPOINT))
-                    .header("Content-Type", ProcessDefinitionClientConstants.CONTENT_TYPE_JSON)
+                    .header("Content-Type", ProcessDefinitionClientConstants.CONTENT_TYPE_JSON);
+
+            if (authToken != null && !authToken.isBlank()) {
+                builder.header("Authorization", "Bearer " + authToken);
+            }
+
+            HttpRequest request = builder
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 
@@ -89,6 +97,9 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
         }
     }
 
+
+
+
     @Override
     public void undeploy(String deploymentId) {
         String endpoint = String.format(ProcessDefinitionClientConstants.UNDEPLOY_ENDPOINT, deploymentId);
@@ -114,6 +125,12 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
         private String baseUrl;
         private HttpClient httpClient;
         private ObjectMapper objectMapper;
+        private String authToken;
+
+        public Builder authToken(String authToken) {
+            this.authToken = authToken;
+            return this;
+        }
 
         public Builder baseUrl(String baseUrl) {
             this.baseUrl = baseUrl;
@@ -138,7 +155,8 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
             return new ProcessDefinitionClient(
                     baseUrl,
                     httpClient != null ? httpClient : HttpClient.newHttpClient(),
-                    objectMapper != null ? objectMapper : new ObjectMapper()
+                    objectMapper != null ? objectMapper : new ObjectMapper(),
+                    authToken
             );
         }
     }
