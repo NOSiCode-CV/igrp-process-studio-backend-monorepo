@@ -23,7 +23,7 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
     private final String baseUrl;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final String authToken;
+    private String authToken;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessDefinitionClient.class);
 
@@ -115,6 +115,11 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
         } catch (Exception ex) {
             throw new ProcessDefinitionClientException("Error while undeploying process definition", ex);
         }
+    }
+
+    // Define o token de autenticação para a próxima requisição.
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
     }
 
     public static Builder builder() {
