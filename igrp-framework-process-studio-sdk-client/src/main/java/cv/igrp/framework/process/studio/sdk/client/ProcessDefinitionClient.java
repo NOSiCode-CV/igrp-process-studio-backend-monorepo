@@ -1,6 +1,5 @@
 package cv.igrp.framework.process.studio.sdk.client;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cv.igrp.framework.process.management.integration.core.adapter.IProcessDefinitionAdapter;
 import cv.igrp.framework.process.management.integration.core.model.IgrpProcessDefinitionRepresentation;
@@ -16,30 +15,33 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
 
     private final String baseUrl;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private String authToken;
+    private final Map<String, String> defaultHeaders;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessDefinitionClient.class);
 
-
-    private ProcessDefinitionClient(String baseUrl, HttpClient httpClient, ObjectMapper objectMapper, String authToken) {
+    private ProcessDefinitionClient(String baseUrl, HttpClient httpClient, ObjectMapper objectMapper,
+            Map<String, String> defaultHeaders) {
         this.baseUrl = baseUrl;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
-        this.authToken = authToken;
+        this.defaultHeaders = defaultHeaders != null ? new HashMap<>(defaultHeaders) : new HashMap<>();
     }
 
     @Override
-    public ProcessDefinitionRepresentation deploy(ProcessDefinitionRepresentation processDefinitionRepresentation)  {
+    public ProcessDefinitionRepresentation deploy(ProcessDefinitionRepresentation processDefinitionRepresentation,
+            Map<String, String> headers) {
         try {
 
-            LOGGER.info("Starting deployment of process definition with key: {}", processDefinitionRepresentation.getKey());
+            LOGGER.info("Starting deployment of process definition with key: {}",
+                    processDefinitionRepresentation.getKey());
 
             ProcessDefinitionRequest deployProcessRequest = ProcessDefinitionRequest.builder()
                     .name(processDefinitionRepresentation.getName())
@@ -58,8 +60,14 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
                     .uri(URI.create(baseUrl + ProcessDefinitionClientConstants.DEPLOY_ENDPOINT))
                     .header("Content-Type", ProcessDefinitionClientConstants.CONTENT_TYPE_JSON);
 
-            if (authToken != null && !authToken.isBlank()) {
-                builder.header("Authorization", "Bearer " + authToken);
+            for (Map.Entry<String, String> entry : defaultHeaders.entrySet()) {
+                builder.header(entry.getKey(), entry.getValue());
+            }
+
+            if (headers != null) {
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    builder.header(entry.getKey(), entry.getValue());
+                }
             }
 
             HttpRequest request = builder
@@ -74,8 +82,8 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
 
             LOGGER.info("Deploy response payload: {}", response.body());
 
-
-            ProcessDefinitionResponse deployProcessResponse = objectMapper.readValue(response.body(), ProcessDefinitionResponse.class);
+            ProcessDefinitionResponse deployProcessResponse = objectMapper.readValue(response.body(),
+                    ProcessDefinitionResponse.class);
 
             LOGGER.info("deployProcessResponse obj ::: {}", deployProcessResponse);
 
@@ -97,29 +105,36 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
         }
     }
 
-
-
-
     @Override
-    public void undeploy(String deploymentId) {
+    public void undeploy(String deploymentId, Map<String, String> headers) {
         String endpoint = String.format(ProcessDefinitionClientConstants.UNDEPLOY_ENDPOINT, deploymentId);
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + endpoint))
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + endpoint));
+
+        // Add default headers (guaranteed not to be null by constructor)
+        for (Map.Entry<String, String> entry : defaultHeaders.entrySet()) {
+            builder.header(entry.getKey(), entry.getValue());
+        }
+
+        // Add request-specific headers, checking for null
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                builder.header(entry.getKey(), entry.getValue());
+            }
+        }
+
+        HttpRequest request = builder
                 .DELETE()
                 .build();
         try {
             HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
             if (response.statusCode() != 204) {
-                throw new ProcessDefinitionClientException("Failed to undeploy process definition. Status code: " + response.statusCode());
+                throw new ProcessDefinitionClientException(
+                        "Failed to undeploy process definition. Status code: " + response.statusCode());
             }
         } catch (Exception ex) {
             throw new ProcessDefinitionClientException("Error while undeploying process definition", ex);
         }
-    }
-
-    // Define o token de autenticação para a próxima requisição.
-    public void setAuthToken(String authToken) {
-        this.authToken = authToken;
     }
 
     public static Builder builder() {
@@ -130,10 +145,17 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
         private String baseUrl;
         private HttpClient httpClient;
         private ObjectMapper objectMapper;
-        private String authToken;
+        private final Map<String, String> defaultHeaders = new HashMap<>();
 
-        public Builder authToken(String authToken) {
-            this.authToken = authToken;
+        public Builder header(String name, String value) {
+            this.defaultHeaders.put(name, value);
+            return this;
+        }
+
+        public Builder headers(Map<String, String> headers) {
+            if (headers != null) {
+                this.defaultHeaders.putAll(headers);
+            }
             return this;
         }
 
@@ -161,8 +183,7 @@ public class ProcessDefinitionClient implements IProcessDefinitionAdapter {
                     baseUrl,
                     httpClient != null ? httpClient : HttpClient.newHttpClient(),
                     objectMapper != null ? objectMapper : new ObjectMapper(),
-                    authToken
-            );
+                    defaultHeaders);
         }
     }
 
