@@ -10,13 +10,13 @@
     <parent>
         <groupId>cv.igrp.framework</groupId>
         <artifactId>igrp-process-studio-backend</artifactId>
-        <version>0.1.0-beta.2</version>
+        <version>0.1.0-beta.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>igrp-framework-process-studio-sdk-client</artifactId>
     <groupId>cv.igrp.framework.process.studio.sdk.client</groupId>
-    <version>0.1.0-beta.2</version>
+    <version>0.1.0-beta.3</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
